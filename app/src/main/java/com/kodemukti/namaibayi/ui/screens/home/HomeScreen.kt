@@ -30,9 +30,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.kodemukti.namaibayi.core.navigation.Screen
 import com.kodemukti.namaibayi.ui.viewmodel.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -203,6 +204,16 @@ fun HomeScreen(
         }
 
         item {
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = "by Kode Mukti",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                letterSpacing = 2.sp,
+                fontWeight = FontWeight.Light
+            )
             Spacer(Modifier.height(80.dp))
         }
     }

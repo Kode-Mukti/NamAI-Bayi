@@ -51,14 +51,28 @@ class GeminiGenerateRepositoryImpl @Inject constructor(
     }
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(60, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
+        .connectTimeout(90, TimeUnit.SECONDS)
+        .readTimeout(90, TimeUnit.SECONDS)
         .build()
 
     private val gson = Gson()
     private val jsonMediaType = "application/json".toMediaType()
 
     override suspend fun generateNames(request: GenerateRequest): Result<AIResponse> {
+        // Try Primary Model
+        val primaryResult = executeApiCall(GeminiConfig.MODEL, request)
+        if (primaryResult.isSuccess) return primaryResult
+
+        // If Primary Fails, Try Fallback Model
+        val error = primaryResult.exceptionOrNull()
+        if (error is GeminiApiException && (error.code == 404 || error.code == 400)) {
+            return executeApiCall(GeminiConfig.FALLBACK_MODEL, request)
+        }
+
+        return primaryResult
+    }
+
+    private fun executeApiCall(model: String, request: GenerateRequest): Result<AIResponse> {
         return try {
             val prompt = promptBuilder.build(request)
             val body = GeminiRequest(
@@ -69,7 +83,7 @@ class GeminiGenerateRepositoryImpl @Inject constructor(
 
             val jsonBody = gson.toJson(body).toRequestBody(jsonMediaType)
             val httpRequest = Request.Builder()
-                .url("${GeminiConfig.BASE_URL}v1beta/models/${GeminiConfig.MODEL}:generateContent?key=$apiKey")
+                .url("${GeminiConfig.BASE_URL}v1beta/models/$model:generateContent?key=$apiKey")
                 .post(jsonBody)
                 .build()
 
@@ -77,12 +91,11 @@ class GeminiGenerateRepositoryImpl @Inject constructor(
             val responseBody = response.body?.string()
 
             if (!response.isSuccessful || responseBody == null) {
-                return Result.failure(Exception("Gemini API error: ${response.code}"))
+                return Result.failure(GeminiApiException(response.code, "API Error for model $model: ${response.code}"))
             }
 
-            val result = parseGeminiResponse(responseBody)
+            val result = parseGeminiResponse(responseBody, model)
             Result.success(result)
-
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -92,7 +105,7 @@ class GeminiGenerateRepositoryImpl @Inject constructor(
         emit(generateNames(request))
     }
 
-    private fun parseGeminiResponse(json: String): AIResponse {
+    private fun parseGeminiResponse(json: String, modelUsed: String): AIResponse {
         val root = JSONObject(json)
         val candidates = root.optJSONArray("candidates")
         val text = candidates
@@ -104,7 +117,8 @@ class GeminiGenerateRepositoryImpl @Inject constructor(
             ?: "{}"
 
         val jsonStr = extractJson(text)
-        val namesArray = JSONObject(jsonStr).optJSONArray("recommendations") ?: JSONArray()
+        val recommendationsJson = JSONObject(jsonStr)
+        val namesArray = recommendationsJson.optJSONArray("recommendations") ?: JSONArray()
 
         val recommendations = mutableListOf<AIBabyName>()
         for (i in 0 until namesArray.length()) {
@@ -112,7 +126,10 @@ class GeminiGenerateRepositoryImpl @Inject constructor(
             recommendations.add(
                 AIBabyName(
                     name = item.optString("name", ""),
+                    fullNameSuggestion = item.optString("fullNameSuggestion", ""),
                     meaning = item.optString("meaning", ""),
+                    philosophy = item.optString("philosophy", ""),
+                    nickname = item.optString("nickname", ""),
                     origin = item.optString("origin", ""),
                     gender = item.optString("gender", ""),
                     pronunciationGuide = item.optString("pronunciation", ""),
@@ -120,6 +137,9 @@ class GeminiGenerateRepositoryImpl @Inject constructor(
                     alternativeSpellings = item.optJSONArray("alternative_spellings")
                         ?.let { arr -> (0 until arr.length()).map { arr.optString(it) } }
                         ?: emptyList(),
+                    uniquenessScore = item.optInt("uniquenessScore", 0),
+                    internationalReadability = item.optString("internationalReadability", ""),
+                    siblingCompatibility = item.optString("siblingCompatibility", ""),
                     popularityRank = if (item.has("popularity_rank")) item.optInt("popularity_rank") else null,
                     score = item.optDouble("score", 0.5).toFloat(),
                     strategyUsed = item.optString("strategy_used", "modern_trendy"),
@@ -130,14 +150,23 @@ class GeminiGenerateRepositoryImpl @Inject constructor(
 
         return AIResponse(
             recommendations = recommendations,
-            modelUsed = GeminiConfig.MODEL,
+            modelUsed = modelUsed,
             totalTokensUsed = recommendations.size,
         )
     }
 
     private fun extractJson(text: String): String {
+        // Match JSON block if present: ```json ... ```
+        val regex = "```json([\\s\\S]*?)```".toRegex()
+        val match = regex.find(text)
+        if (match != null) {
+            return match.groups[1]?.value?.trim() ?: "{}"
+        }
+
         val start = text.indexOf('{')
         val end = text.lastIndexOf('}')
         return if (start >= 0 && end > start) text.substring(start, end + 1) else "{}"
     }
+
+    private class GeminiApiException(val code: Int, message: String) : Exception(message)
 }

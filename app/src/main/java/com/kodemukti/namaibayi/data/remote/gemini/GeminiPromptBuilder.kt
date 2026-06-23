@@ -13,42 +13,48 @@ class GeminiPromptBuilder @Inject constructor() {
             appendLine("Anda memiliki pengetahuan mendalam tentang 300+ suku dan budaya Indonesia, 6 agama resmi, 700+ bahasa daerah, dan tren nama Indonesia modern hingga tradisional.")
             appendLine()
             appendLine("TUGAS ANDA:")
-            appendLine("1. Berikan 5 rekomendasi nama bayi berdasarkan preferensi berikut")
-            appendLine("2. Setiap nama harus memiliki makna yang jelas dan mendalam")
-            appendLine("3. Cantumkan asal-usul bahasa masing-masing nama")
-            appendLine("4. Berikan skor kecocokan 0.0 - 1.0 untuk setiap nama")
-            appendLine("5. Jelaskan alasan merekomendasikan setiap nama")
-            appendLine("6. Variasikan asal-usul nama dalam 5 rekomendasi")
+            appendLine("1. Berikan 5 rekomendasi nama bayi terbaik berdasarkan preferensi yang diberikan.")
+            appendLine("2. Setiap nama harus memiliki makna yang jelas, mendalam, dan filosofi yang kuat.")
+            appendLine("3. Berikan saran nama lengkap (2-3 kata) yang harmonis.")
+            appendLine("4. Berikan saran nama panggilan (nickname) yang manis.")
+            appendLine("5. Evaluasi keterbacaan internasional dan kecocokan dengan saudara (jika ada).")
+            appendLine("6. Berikan skor keunikan (1-100).")
             appendLine()
-            appendLine("DATA CALON ORANG TUA:")
-            appendLine("- Nama yang dicari: ${profile.name}")
+            appendLine("PREFERENSI PENGGUNA:")
             appendLine("- Jenis Kelamin: ${profile.gender.name.lowercase()}")
-            appendLine("- Bahasa Preferensi: ${profile.preferredLanguage.name.lowercase()}")
+            
+            if (request.additionalPreferences.isNotEmpty()) {
+                request.additionalPreferences.forEach { pref ->
+                    appendLine("- $pref")
+                }
+            }
 
             request.strategy?.let {
                 appendLine("- Strategi Penamaan: ${it.name.lowercase()}")
             }
 
-            if (request.additionalPreferences.isNotEmpty()) {
-                appendLine("- Preferensi Tambahan: ${request.additionalPreferences.joinToString(", ")}")
-            }
-
             appendLine()
-            appendLine("RESPON DALAM FORMAT JSON SAJA:")
+            appendLine("RESPON DALAM FORMAT JSON SAJA DENGAN STRUKTUR BERIKUT:")
             appendLine("""
 {
   "recommendations": [
     {
       "name": "string",
+      "fullNameSuggestion": "string",
       "meaning": "string",
-      "origin": "string (asal bahasa/budaya)",
+      "philosophy": "string (filosofi mendalam)",
+      "nickname": "string",
+      "origin": "string",
       "pronunciation": "string",
       "cultural_context": "string",
       "alternative_spellings": ["string"],
-      "popularity_rank": int (1-500) atau null,
+      "uniquenessScore": int (1-100),
+      "internationalReadability": "string",
+      "siblingCompatibility": "string",
+      "popularity_rank": int,
       "score": float (0.0-1.0),
       "strategy_used": "string",
-      "reasoning": "string (penjelasan panjang)"
+      "reasoning": "string (mengapa AI merekomendasikan ini)"
     }
   ]
 }

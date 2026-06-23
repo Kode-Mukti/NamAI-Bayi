@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -39,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.kodemukti.namaibayi.core.common.UiState
 import com.kodemukti.namaibayi.domain.model.AIBabyName
@@ -62,8 +62,7 @@ fun DetailScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp)
-            .verticalScroll(rememberScrollState()),
+            .background(MaterialTheme.colorScheme.background)
     ) {
         TopAppBar(
             title = { Text("Detail Nama", fontWeight = FontWeight.SemiBold) },
@@ -79,7 +78,15 @@ fun DetailScreen(
                 if (uiState is UiState.Success) {
                     val name = (uiState as UiState.Success<AIBabyName>).data
                     IconButton(onClick = {
-                        val shareText = "Nama: ${name.name}\nMakna: ${name.meaning}\nAsal: ${name.origin}\n\nBagikan dari NamAI Bayi"
+                        val shareText = """
+                            Rekomendasi Nama dari NamAI Bayi:
+                            Nama: ${name.name}
+                            Nama Lengkap: ${name.fullNameSuggestion}
+                            Makna: ${name.meaning}
+                            Filosofi: ${name.philosophy}
+                            
+                            Temukan lebih banyak di NamAI Bayi!
+                        """.trimIndent()
                         val intent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
                             putExtra(Intent.EXTRA_TEXT, shareText)
@@ -98,7 +105,7 @@ fun DetailScreen(
         when (val state = uiState) {
             is UiState.Loading -> {
                 Box(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 64.dp),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator()
@@ -107,7 +114,7 @@ fun DetailScreen(
 
             is UiState.Error -> {
                 Box(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 64.dp),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
@@ -119,10 +126,17 @@ fun DetailScreen(
             }
 
             is UiState.Success -> {
-                DetailContent(
-                    name = state.data,
-                    onToggleFavorite = { viewModel.toggleFavorite(state.data) }
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 20.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    DetailContent(
+                        name = state.data,
+                        onToggleFavorite = { viewModel.toggleFavorite(state.data) }
+                    )
+                }
             }
 
             is UiState.Idle -> {}
@@ -147,69 +161,81 @@ private fun DetailContent(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
+            if (name.fullNameSuggestion.isNotBlank()) {
+                Text(
+                    text = name.fullNameSuggestion,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
-        Text(
-            text = "${(name.score * 100).toInt()}% Match",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.tertiary,
-            fontWeight = FontWeight.Bold
-        )
-    }
-
-    Spacer(Modifier.height(8.dp))
-
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            modifier = Modifier
-                .clip(MaterialTheme.shapes.extraSmall)
-                .background(MaterialTheme.colorScheme.secondaryContainer)
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
+        Column(horizontalAlignment = Alignment.End) {
             Text(
-                text = name.strategyUsed.replace("_", " ").uppercase(),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                text = "${(name.score * 100).toInt()}%",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.tertiary,
                 fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Match",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.tertiary
             )
         }
     }
 
-    Spacer(Modifier.height(12.dp))
+    Spacer(Modifier.height(16.dp))
 
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Badge(name.strategyUsed.replace("_", " ").uppercase())
+        if (name.nickname.isNotBlank()) {
+            Badge("Panggilan: ${name.nickname}", MaterialTheme.colorScheme.tertiaryContainer)
+        }
+    }
+
+    Spacer(Modifier.height(24.dp))
+
+    SectionTitle("Makna & Filosofi")
     Text(
         text = name.meaning,
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = MaterialTheme.typography.bodyLarge,
+        fontWeight = FontWeight.Medium,
+        color = MaterialTheme.colorScheme.onSurface
     )
+    if (name.philosophy.isNotBlank()) {
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = name.philosophy,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
 
     Spacer(Modifier.height(24.dp))
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             InfoRow("Asal Bahasa", name.origin)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            InfoRow("Jenis Kelamin", name.gender)
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             InfoRow("Pengucapan", name.pronunciationGuide)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            InfoRow("Popularitas", name.popularityRank?.let { "#$it dari 1000" } ?: "-")
+            InfoRow("Skor Keunikan", "${name.uniquenessScore}/100")
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            InfoRow("Keterbacaan Int'l", name.internationalReadability.ifBlank { "-" })
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            InfoRow("Kocok Saudara", name.siblingCompatibility.ifBlank { "-" })
         }
     }
 
     Spacer(Modifier.height(24.dp))
 
-    Text(
-        text = "Analisis AI",
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold,
-    )
-    Spacer(Modifier.height(8.dp))
+    SectionTitle("Mengapa AI Merekomendasikan?")
     Text(
         text = name.reasoning,
         style = MaterialTheme.typography.bodyMedium,
@@ -218,12 +244,7 @@ private fun DetailContent(
 
     Spacer(Modifier.height(24.dp))
 
-    Text(
-        text = "Konteks Budaya",
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold,
-    )
-    Spacer(Modifier.height(8.dp))
+    SectionTitle("Konteks Budaya")
     Text(
         text = name.culturalContext,
         style = MaterialTheme.typography.bodyMedium,
@@ -232,12 +253,7 @@ private fun DetailContent(
 
     if (name.alternativeSpellings.isNotEmpty()) {
         Spacer(Modifier.height(24.dp))
-        Text(
-            text = "Ejaan Alternatif",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Spacer(Modifier.height(8.dp))
+        SectionTitle("Ejaan Alternatif")
         Text(
             text = name.alternativeSpellings.joinToString(", "),
             style = MaterialTheme.typography.bodyMedium,
@@ -263,6 +279,34 @@ private fun DetailContent(
 }
 
 @Composable
+private fun Badge(text: String, containerColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.secondaryContainer) {
+    Box(
+        modifier = Modifier
+            .clip(MaterialTheme.shapes.extraSmall)
+            .background(containerColor)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+private fun SectionTitle(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
+}
+
+@Composable
 private fun InfoRow(label: String, value: String) {
     Row(
         modifier = Modifier
@@ -278,7 +322,7 @@ private fun InfoRow(label: String, value: String) {
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.SemiBold,
         )
     }
 }

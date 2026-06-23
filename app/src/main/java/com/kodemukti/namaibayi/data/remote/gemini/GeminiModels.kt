@@ -17,6 +17,12 @@ data class GenerationConfig(
     val temperature: Float = GeminiConfig.TEMPERATURE,
     val maxOutputTokens: Int = GeminiConfig.MAX_OUTPUT_TOKENS,
     val topP: Float = GeminiConfig.TOP_P,
+    val thinkingConfig: ThinkingConfig? = ThinkingConfig(),
+)
+
+data class ThinkingConfig(
+    val includeThinkingProcess: Boolean = true,
+    val thinkingLevel: String = "MINIMAL",
 )
 
 data class GeminiResponse(

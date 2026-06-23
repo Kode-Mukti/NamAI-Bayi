@@ -16,6 +16,6 @@ object Constants {
     // Cara setting: buka file local.properties (di root project), tambah baris:
     //   gemini.api.key=AIzaSy...
     const val GEMINI_API_KEY = ""
-    const val GEMINI_MODEL = "gemini-2.0-flash"
+    const val GEMINI_MODEL = "gemma-4-31b-it"
     const val GEMINI_MAX_TOKENS = 2048
 }
