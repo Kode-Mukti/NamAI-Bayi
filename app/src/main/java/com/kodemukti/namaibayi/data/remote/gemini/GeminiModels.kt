@@ -27,9 +27,16 @@ data class ThinkingConfig(
 
 data class GeminiResponse(
     val candidates: List<Candidate>? = null,
+    val usageMetadata: UsageMetadata? = null,
 )
 
 data class Candidate(
     val content: Content? = null,
     val finishReason: String? = null,
+)
+
+data class UsageMetadata(
+    val promptTokenCount: Int,
+    val candidatesTokenCount: Int,
+    val totalTokenCount: Int,
 )

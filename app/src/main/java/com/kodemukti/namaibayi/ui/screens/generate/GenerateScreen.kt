@@ -24,6 +24,8 @@ import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -108,6 +110,13 @@ fun GenerateScreen(
             placeholder = "Contoh: Aisyah"
         )
 
+        PreferenceTextField(
+            label = "Nama Bayi (Opsional)",
+            value = formState.name,
+            onValueChange = viewModel::updateName,
+            placeholder = "Contoh: Arkana"
+        )
+
         // Jenis Kelamin
         Text(
             text = "Jenis Kelamin",
@@ -169,6 +178,39 @@ fun GenerateScreen(
             onValueChange = viewModel::updatePersonality,
             placeholder = "Contoh: Pemimpin, Lembut, Cerdas"
         )
+
+        // Tingkat Keunikan
+        Text(
+            text = "Tingkat Keunikan",
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Medium,
+        )
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = "Populer",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = "Unik",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Slider(
+            value = formState.uniquenessLevel,
+            onValueChange = viewModel::updateUniquenessLevel,
+            valueRange = 0f..1f,
+            modifier = Modifier.fillMaxWidth(),
+            colors = SliderDefaults.colors(
+                thumbColor = MaterialTheme.colorScheme.primary,
+                activeTrackColor = MaterialTheme.colorScheme.primary,
+            ),
+        )
+        Spacer(Modifier.height(8.dp))
 
         Spacer(Modifier.height(32.dp))
 

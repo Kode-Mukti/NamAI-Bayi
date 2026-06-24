@@ -1,8 +1,8 @@
 package com.kodemukti.namaibayi.core.di
 
+import com.kodemukti.namaibayi.data.repository.FallbackGenerateRepositoryImpl
 import com.kodemukti.namaibayi.data.repository.FavoriteRepositoryImpl
 import com.kodemukti.namaibayi.data.repository.HistoryRepositoryImpl
-import com.kodemukti.namaibayi.data.repository.LocalGenerateRepositoryImpl
 import com.kodemukti.namaibayi.data.repository.SettingsRepositoryImpl
 import com.kodemukti.namaibayi.domain.repository.FavoriteRepository
 import com.kodemukti.namaibayi.domain.repository.GenerateRepository
@@ -18,25 +18,11 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
 
-    // ── MODE: Generate ──────────────────────────────────────────────
-    // Sekarang: LocalGenerateRepositoryImpl — offline, pakai database lokal 75+ nama
-    //
-    // Kalau mau pake Gemini API:
-    //   1. Isi gemini.api.key=API_KEY di local.properties (atau di Constants.kt)
-    //   2. Ganti binding di bawah jadi GeminiGenerateRepositoryImpl:
-    //
-    //     @Binds @Singleton
-    //     abstract fun bindGenerateRepository(impl: GeminiGenerateRepositoryImpl): GenerateRepository
-    //
-    // Kalau mau pake backend custom:
-    //   Ganti binding jadi GenerateRepositoryImpl (Retrofit → namAIApi):
-    //
-    //     @Binds @Singleton
-    //     abstract fun bindGenerateRepository(impl: GenerateRepositoryImpl): GenerateRepository
+    // Fallback: coba Gemini API dulu; kalau gagal, pakai data lokal 75+ nama
 
     @Binds
     @Singleton
-    abstract fun bindGenerateRepository(impl: LocalGenerateRepositoryImpl): GenerateRepository
+    abstract fun bindGenerateRepository(impl: FallbackGenerateRepositoryImpl): GenerateRepository
 
     @Binds
     @Singleton

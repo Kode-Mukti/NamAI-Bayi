@@ -1,0 +1,6 @@
+Starting a Gradle Daemon, 3 stopped Daemons could not be reused, use --status for details
+Daemon JVM discovery is an incubating feature.
+This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered. This can happen if you use versions of Android Studio and the command-line tools that were released at different times.
+Checking the license for package Android SDK Build-Tools 35 in C:\Users\Sever\AppData\Local\Android\Sdk\licenses
+License for package Android SDK Build-Tools 35 accepted.
+Preparing "Install Android SDK Build-Tools 35 v.35.0.0".

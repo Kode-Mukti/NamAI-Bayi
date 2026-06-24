@@ -28,6 +28,10 @@ class FavoriteRepositoryImpl @Inject constructor(
         favoriteDao.deleteById(id)
     }
 
+    override suspend fun removeFromFavoritesByRecommendationId(recommendationId: String) {
+        favoriteDao.deleteByRecommendationId(recommendationId)
+    }
+
     override suspend fun isFavorite(nameRecommendationId: String): Boolean {
         return favoriteDao.isFavorite(nameRecommendationId) > 0
     }

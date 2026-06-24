@@ -53,6 +53,7 @@ fun ResultScreen(
     viewModel: ResultViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val favoriteIds by viewModel.favoriteIds.collectAsState()
     val state = uiState
     val context = LocalContext.current
 
@@ -144,6 +145,7 @@ fun ResultScreen(
                     items(state.data) { name ->
                         NameCard(
                             name = name,
+                            isFavorite = favoriteIds.contains(name.id),
                             onFavoriteToggle = { viewModel.toggleFavorite(name) },
                             onClick = { onNavigateToDetail(name.id) },
                         )
@@ -162,6 +164,7 @@ fun ResultScreen(
 @Composable
 private fun NameCard(
     name: AIBabyName,
+    isFavorite: Boolean,
     onFavoriteToggle: () -> Unit,
     onClick: () -> Unit,
 ) {
@@ -227,9 +230,9 @@ private fun NameCard(
             }
             IconButton(onClick = onFavoriteToggle) {
                 Icon(
-                    imageVector = Icons.Default.StarBorder,
-                    contentDescription = "Favoritkan",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    imageVector = if (isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
+                    contentDescription = if (isFavorite) "Hapus dari Favorit" else "Favoritkan",
+                    tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }

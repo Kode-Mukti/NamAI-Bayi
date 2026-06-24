@@ -1,5 +1,6 @@
 package com.kodemukti.namaibayi.ui.screens.detail
 
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -43,7 +45,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.kodemukti.namaibayi.core.common.UiState
 import com.kodemukti.namaibayi.domain.model.AIBabyName
 import com.kodemukti.namaibayi.ui.viewmodel.DetailViewModel
-import android.content.Intent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,6 +54,7 @@ fun DetailScreen(
     viewModel: DetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val isFavorite by viewModel.isFavorite.collectAsState()
     val context = LocalContext.current
 
     LaunchedEffect(nameRecommendationId) {
@@ -134,6 +136,7 @@ fun DetailScreen(
                 ) {
                     DetailContent(
                         name = state.data,
+                        isFavorite = isFavorite,
                         onToggleFavorite = { viewModel.toggleFavorite(state.data) }
                     )
                 }
@@ -147,6 +150,7 @@ fun DetailScreen(
 @Composable
 private fun DetailContent(
     name: AIBabyName,
+    isFavorite: Boolean,
     onToggleFavorite: () -> Unit,
 ) {
     Row(
@@ -268,11 +272,12 @@ private fun DetailContent(
         modifier = Modifier.fillMaxWidth().height(52.dp),
     ) {
         Icon(
-            imageVector = Icons.Default.Star,
+            imageVector = if (isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
             contentDescription = null,
             modifier = Modifier.padding(end = 8.dp),
+            tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Text("Simpan ke Favorit")
+        Text(if (isFavorite) "Tersimpan di Favorit" else "Simpan ke Favorit")
     }
 
     Spacer(Modifier.height(80.dp))

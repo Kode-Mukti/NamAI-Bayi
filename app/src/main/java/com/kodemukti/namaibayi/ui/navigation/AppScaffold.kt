@@ -12,19 +12,30 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.kodemukti.namaibayi.core.navigation.Screen
+import com.kodemukti.namaibayi.ui.screens.PrivacyDialog
+import com.kodemukti.namaibayi.ui.viewmodel.PrivacyViewModel
 
 @Composable
-fun AppScaffold() {
+fun AppScaffold(
+    privacyViewModel: PrivacyViewModel = hiltViewModel(),
+) {
+    val showPrivacyDialog by privacyViewModel.showDialog.collectAsState()
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+
+    if (showPrivacyDialog) {
+        PrivacyDialog(onAcknowledge = privacyViewModel::acknowledge)
+    }
 
     val bottomBarRoutes = Screen.bottomNavItems.map { it.route }
     val showBottomBar = currentDestination?.route in bottomBarRoutes

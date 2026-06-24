@@ -10,7 +10,7 @@ class ToggleFavoriteUseCase @Inject constructor(
     suspend operator fun invoke(item: FavoriteName) {
         val exists = repository.isFavorite(item.nameRecommendationId)
         if (exists) {
-            repository.removeFromFavorites(item.id)
+            repository.removeFromFavoritesByRecommendationId(item.nameRecommendationId)
         } else {
             repository.addToFavorites(item)
         }
