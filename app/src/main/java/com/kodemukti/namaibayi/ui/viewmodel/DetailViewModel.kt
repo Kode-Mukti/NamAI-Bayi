@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.kodemukti.namaibayi.core.common.UiState
 import com.kodemukti.namaibayi.domain.model.AIBabyName
 import com.kodemukti.namaibayi.domain.model.FavoriteName
-import com.kodemukti.namaibayi.domain.repository.GenerateRepository
 import com.kodemukti.namaibayi.domain.repository.FavoriteRepository
+import com.kodemukti.namaibayi.domain.repository.GenerateRepository
 import com.kodemukti.namaibayi.domain.usecase.ToggleFavoriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,15 +28,15 @@ class DetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<UiState<AIBabyName>>(UiState.Idle)
     val uiState: StateFlow<UiState<AIBabyName>> = _uiState.asStateFlow()
 
+    private var currentNameId: String? = null
+
     val isFavorite: StateFlow<Boolean> = favoriteRepository.getAllFavorites()
-        .map { favorites -> 
-            val currentNameId = (_uiState.value as? UiState.Success)?.data?.id
-            favorites.any { it.nameRecommendationId == currentNameId }
-        }
+        .map { favorites -> favorites.any { it.nameRecommendationId == currentNameId } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     fun loadDetail(nameRecommendationId: String) {
         if (_uiState.value is UiState.Loading) return
+        currentNameId = nameRecommendationId
         viewModelScope.launch {
             _uiState.value = UiState.Loading
             generateRepository.getRecommendationById(nameRecommendationId).fold(
@@ -58,7 +58,7 @@ class DetailViewModel @Inject constructor(
                 name = name.name,
                 meaning = name.meaning,
                 origin = name.origin,
-                savedAt = System.currentTimeMillis()
+                savedAt = System.currentTimeMillis(),
             )
             toggleFavoriteUseCase(favorite)
         }

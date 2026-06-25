@@ -72,7 +72,7 @@ class ToggleFavoriteUseCaseTest {
         val useCase = ToggleFavoriteUseCase(repo)
         useCase(item)
 
-        coVerify { repo.removeFromFavorites("1") }
+        coVerify { repo.removeFromFavoritesByRecommendationId("r1") }
     }
 
     @Test

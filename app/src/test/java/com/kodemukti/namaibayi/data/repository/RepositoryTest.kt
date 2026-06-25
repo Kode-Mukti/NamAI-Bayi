@@ -104,7 +104,7 @@ class GenerateRepositoryImplTest {
 
         val dto = GenerateResponseDto(
             recommendations = listOf(
-                NameDto("Arkana", "Cahaya", "Sanskerta", "Ar-ka-na", "Budaya", emptyList(), null, 0.95f, "modern", "Bagus")
+                NameDto(name = "Arkana", meaning = "Cahaya", origin = "Sanskerta", pronunciationGuide = "Ar-ka-na", culturalContext = "Budaya", alternativeSpellings = emptyList(), popularityRank = null, score = 0.95f, strategyUsed = "modern", reasoning = "Bagus")
             ),
             modelUsed = "gpt-4",
             totalTokensUsed = 100,
